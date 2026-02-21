@@ -1,55 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { ShoppingCart, Star } from 'lucide-react';
 import { useCart, Product } from '../context/CartContext';
 
-const products: Product[] = [
-  {
-    id: '1',
-    name: 'Pure A2 Desi Cow Ghee',
-    price: 1200,
-    category: 'Dairy',
-    image: 'https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: '2',
-    name: 'Gomaya Incense Sticks',
-    price: 150,
-    category: 'Spiritual',
-    image: 'https://images.unsplash.com/photo-1602848597941-0d3d3a2c1241?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: '3',
-    name: 'Panchagavya Herbal Soap',
-    price: 85,
-    category: 'Personal Care',
-    image: 'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: '4',
-    name: 'Organic Cow Dung Fertilizer',
-    price: 250,
-    category: 'Agriculture',
-    image: 'https://images.unsplash.com/photo-1615811361523-6bd03d7748e7?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: '5',
-    name: 'Gomutra Ark (Distilled)',
-    price: 180,
-    category: 'Health',
-    image: 'https://images.unsplash.com/photo-1512069772995-ec65ed45afd6?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: '6',
-    name: 'Handmade Cow Dung Diyas',
-    price: 120,
-    category: 'Decor',
-    image: 'https://images.unsplash.com/photo-1573408302185-9146fe634ad0?auto=format&fit=crop&w=400&q=80',
-  },
-];
+// Static products removed, now fetching from backend
 
 export default function ShopSection() {
   const { addToCart } = useCart();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(data => {
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to fetch products:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="py-24 text-center bg-stone-50">
+        <div className="animate-pulse text-brand-green font-medium">Loading organic products...</div>
+      </div>
+    );
+  }
 
   return (
     <section id="shop" className="py-24 bg-stone-50">

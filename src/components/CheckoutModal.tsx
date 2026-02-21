@@ -11,12 +11,31 @@ interface CheckoutModalProps {
 }
 
 export default function CheckoutModal({ isOpen, onClose, type, amount }: CheckoutModalProps) {
-  const { total, clearCart } = useCart();
+  const { cart, total, clearCart } = useCart();
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '' });
   const [step, setStep] = useState<'details' | 'payment' | 'processing' | 'success'>('details');
   const finalAmount = type === 'donation' ? amount : total;
 
-  const handleProcess = () => {
+  const handleProcess = async () => {
     setStep('processing');
+
+    if (type === 'shop') {
+      try {
+        await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            items: cart,
+            total: total
+          })
+        });
+      } catch (error) {
+        console.error('Order submission failed:', error);
+      }
+    }
+
     setTimeout(() => {
       setStep('success');
       if (type === 'shop') clearCart();
@@ -35,7 +54,7 @@ export default function CheckoutModal({ isOpen, onClose, type, amount }: Checkou
           onClick={onClose}
           className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm"
         />
-        
+
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -57,10 +76,33 @@ export default function CheckoutModal({ isOpen, onClose, type, amount }: Checkou
                   <p className="text-stone-500">Please provide your information</p>
                 </div>
                 <div className="space-y-4">
-                  <input type="text" placeholder="Full Name" className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-brand-green outline-none" />
-                  <input type="email" placeholder="Email Address" className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-brand-green outline-none" />
-                  <input type="tel" placeholder="Phone Number" className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-brand-green outline-none" />
-                  <textarea placeholder="Shipping Address" className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-brand-green outline-none h-24" />
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-brand-green outline-none"
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email Address"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-brand-green outline-none"
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Phone Number"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-brand-green outline-none"
+                  />
+                  <textarea
+                    placeholder="Shipping Address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-brand-green outline-none h-24"
+                  />
                 </div>
                 <button
                   onClick={() => setStep('payment')}
@@ -77,7 +119,7 @@ export default function CheckoutModal({ isOpen, onClose, type, amount }: Checkou
                   <h3 className="text-2xl font-bold text-brand-green">Payment Method</h3>
                   <p className="text-stone-500">Secure Payment Gateway</p>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="p-4 border-2 border-brand-green rounded-2xl bg-green-50 flex flex-col items-center gap-2 cursor-pointer">
                     <CreditCard className="text-brand-green" />
@@ -132,8 +174,8 @@ export default function CheckoutModal({ isOpen, onClose, type, amount }: Checkou
                 </div>
                 <h3 className="text-3xl font-bold text-stone-800 mb-2">Payment Successful!</h3>
                 <p className="text-stone-500 mb-8">
-                  {type === 'donation' 
-                    ? 'Thank you for your generous donation to Neem Karori Baba Gaushala.' 
+                  {type === 'donation'
+                    ? 'Thank you for your generous donation to Neem Karori Baba Gaushala.'
                     : 'Your order has been placed successfully. You will receive an email confirmation shortly.'}
                 </p>
                 <button
